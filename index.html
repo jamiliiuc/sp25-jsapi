@@ -9,57 +9,125 @@
 </head>
 
 <body>
-    <div class="navbar bg-base-100 shadow-sm">
-        <div class="navbar-start">
-            <div class="dropdown">
-                <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6h16M4 12h8m-8 6h16" />
-                    </svg>
+    <nav>
+        <div class="navbar bg-base-100 shadow-sm">
+            <div class="navbar-start">
+                <div class="dropdown">
+                    <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h8m-8 6h16" />
+                        </svg>
+                    </div>
+                    <ul tabindex="0" id="menuSm"
+                        class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
+
+                    </ul>
                 </div>
-                <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-                    <li><a>Asia</a></li>
-                    <li><a>Africa</a></li>
-                    <li><a>America</a></li>
+                <a class="btn btn-ghost text-xl">daisyUI</a>
+            </div>
+            <div class="navbar-center hidden lg:flex">
+                <ul class="menu menu-horizontal px-1" id="menuLg">
+
                 </ul>
             </div>
-            <a class="btn btn-ghost text-xl">daisyUI</a>
+            <div class="navbar-end">
+                <a class="btn">Button</a>
+            </div>
         </div>
-        <div class="navbar-center hidden lg:flex">
-            <ul class="menu menu-horizontal px-1" id = "reg">
-                
-            </ul>
+    </nav>
+    <main>
+        <div id="visitedCountryContainer" class="flex gap-5 border border-rose-700 flex-wrap">
+            
         </div>
-        <div class="navbar-end">
-            <a class="btn">Button</a>
+        <div id="countryContainer" class="grid grid-cols-3 gap-4 mt-5 mx-20">
+            <div class="card bg-base-100 shadow-sm">
+                <figure>
+                    <img src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp" alt="Shoes" />
+                </figure>
+                <div class="card-body">
+                    <h2 class="card-title">Card Title</h2>
+                    <p>A card component has a figure, a body part, and inside body there are title and actions parts</p>
+                    <div class="card-actions justify-end">
+                        <button class="btn btn-primary">Buy Now</button>
+                    </div>
+                </div>
+            </div>
+
         </div>
-    </div>
+    </main>
 
 
     <script>
+        fetch(`https://restcountries.com/v3.1/region/Asia`)
+            .then(res => res.json())
+            .then(data => loadCountries(data))
 
-        console.log("gello")
+        function loadCategories(data) {
+            const regionSet = new Set();
+            for (let i = 0; i < data.length; i++) {
+                regionSet.add(data[i].region)
+            }
+            const categories = [...regionSet]
+
+            let categoryLi = "";
+            categories.forEach(category => categoryLi += `
+            <li><a id=${category}>${category}</a></li>
+            `)
+
+            document.getElementById("menuLg").innerHTML = categoryLi;
+            document.getElementById("menuSm").innerHTML = categoryLi;
+        }
+
         fetch('https://restcountries.com/v3.1/all?fields=name,cca2,flags,region')
             .then(res => res.json())
-            .then(data => {
-                const regionSet = new Set();
-                for(let i = 0; i < data.length; i++) {
-                    regionSet.add(data[i].region)
-                }
+            .then(data => loadCategories(data))
 
-                const cat = [...regionSet]
-                document.getElementById("reg").innerHTML = `
-                <li><a>${cat[0]}</a></li>
-                <li><a>${cat[1]}</a></li>
-                <li><a>${cat[2]}</a></li>
-                <li><a>${cat[3]}</a></li>
-                <li><a>${cat[4]}</a></li>
-                `
-            })
+        function visitCountry(e) {
+            const cca2 = e.id;
+            fetch("https://restcountries.com/v3.1/alpha/" + cca2)
+                .then(res => res.json())
+                .then(data => {
+                    console.log(data)
+                    let visitedCountryContainer = document.getElementById("visitedCountryContainer").innerHTML;
 
-        console.log("hello")
+                    visitedCountryContainer += `<img class="w-20" src="${data[0].flags.png}" alt="">`
+
+                    document.getElementById("visitedCountryContainer").innerHTML = visitedCountryContainer;
+                    
+                })
+
+        }
+
+        function loadCountries(countries) {
+            console.log(countries)
+            const countryContainer = document.getElementById("countryContainer");
+            let countryDiv = "";
+            countries.forEach(country => countryDiv += `
+            <div class="card bg-base-100 shadow-sm">
+                <figure>
+                    <img src="${country.flags.png}" alt="Shoes" />
+                </figure>
+                <div class="card-body">
+                    <h2 class="card-title">${country.name.common}</h2>
+                    <p>${country.name.official}</p>
+                    <div class="card-actions justify-end">
+                        <button onclick="visitCountry(${country.cca2})" class="btn btn-primary" id="${country.cca2}">Visit</button>
+                    </div>
+                </div>
+            </div>
+            `)
+
+            countryContainer.innerHTML = countryDiv;
+        }
+
+        document.querySelectorAll(".menu").forEach(item => item.addEventListener('click', function (e) {
+            const region = e.target.id;
+            fetch(`https://restcountries.com/v3.1/region/${region}`)
+                .then(res => res.json())
+                .then(data => loadCountries(data))
+        }))
 
 
     </script>
