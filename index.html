@@ -58,8 +58,10 @@
         </div>
     </main>
 
-
+    <script src="localDB.js"></script>
     <script>
+        loadVisitedCountries();
+        
         fetch(`https://restcountries.com/v3.1/region/Asia`)
             .then(res => res.json())
             .then(data => loadCountries(data))
@@ -86,11 +88,17 @@
 
         function visitCountry(e) {
             const cca2 = e.id;
+            if(isVisited(e.id)) {
+                alert("Already Visited!")
+                return;
+            }
             fetch("https://restcountries.com/v3.1/alpha/" + cca2)
                 .then(res => res.json())
                 .then(data => {
                     console.log(data)
                     let visitedCountryContainer = document.getElementById("visitedCountryContainer").innerHTML;
+                    
+                    addVisitedCountryToLS(data[0].flags.png, cca2);
 
                     visitedCountryContainer += `<img class="w-20" src="${data[0].flags.png}" alt="">`
 
